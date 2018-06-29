@@ -1,0 +1,276 @@
+-- ("High Distinction"), Spring 2015
+-- Author: Audwin Oyong
+-- Email: Audwin.H.Oyong@student.uts.edu.au
+-- Title: Menulog Online Food Takeaway Database
+-- 
+-- This database was inspired by the website: www.menulog.com.au
+-- Menulog is a website that offers online food ordering, processes the orders and deliver it to the customers. 
+-- The database lists the participating restaurants, menus, reviews, and orders to customers.
+--
+
+
+-- Drop Tables
+
+DROP TABLE Menulog_Location CASCADE;
+DROP TABLE Menulog_Restaurant CASCADE;
+DROP TABLE Menulog_Review CASCADE;
+DROP TABLE Menulog_Menu CASCADE;
+DROP TABLE Menulog_Order CASCADE;
+DROP TABLE Menulog_Customer CASCADE;
+DROP TABLE Menulog_CustomerOrder CASCADE;
+
+
+-- Table Creation
+
+CREATE TABLE Menulog_Location
+(
+	CityID		numeric(3)	NOT NULL,
+	City		varchar	 	NOT NULL,
+	Suburb		varchar 	NOT NULL,
+	State		varchar 	NOT NULL,
+	PostCode	numeric(4) 	NOT NULL,
+
+	CONSTRAINT PK_City PRIMARY KEY (CityID),
+	
+	CONSTRAINT Length_CityID CHECK (length(CityID) = 3),	
+	CONSTRAINT Valid_State CHECK (State IN ('ACT','NSW','NT','QLD','SA','TAS','VIC','WA')),
+	CONSTRAINT Valid_PostCode CHECK (PostCode >= 2000)
+
+);
+
+CREATE TABLE Menulog_Restaurant
+(
+	RestaurantID	numeric(4)	NOT NULL,
+	CityID		numeric(3)	NOT NULL,
+	RestaurantName	varchar		NOT NULL,
+	CuisineType	varchar 	NOT NULL,
+	Address		varchar 	NOT NULL,
+	PhoneNo		varchar,
+	OpenHour	time 		NOT NULL,
+	CloseHour	time 		NOT NULL,
+	
+	CONSTRAINT PK_Restaurant PRIMARY KEY (RestaurantID),
+	
+	CONSTRAINT FK_RestCity FOREIGN KEY (CityID) REFERENCES Menulog_Location
+		ON DELETE CASCADE
+		ON UPDATE CASCADE,
+
+	CONSTRAINT Length_RestaurantID CHECK (length(RestaurantID) = 4),
+	CONSTRAINT Length_PhoneNo CHECK (length(PhoneNo) = 10)
+
+);
+
+CREATE TABLE Menulog_Review
+(
+	ReviewID	numeric(5)	NOT NULL,
+	RestaurantID	numeric(4)	NOT NULL,
+	Date		date 		NOT NULL,
+	UserName	varchar,
+	Rating		real		NOT NULL,
+
+	CONSTRAINT PK_Review PRIMARY KEY (ReviewID),
+	
+	CONSTRAINT FK_RevRestaurant FOREIGN KEY (RestaurantID) REFERENCES Menulog_Restaurant
+		ON DELETE CASCADE
+		ON UPDATE CASCADE,
+
+	CONSTRAINT Length_ReviewID CHECK (length(ReviewID) = 5),
+	CONSTRAINT Length_RestaurantID CHECK (length(RestaurantID) = 4),
+	CONSTRAINT Range_Rating CHECK (Rating BETWEEN 0 AND 5)
+
+);
+
+CREATE TABLE Menulog_Menu
+(
+	MenuID		numeric(5)	NOT NULL,
+	RestaurantID	numeric(4)	NOT NULL,
+	MenuName	varchar		NOT NULL,
+	Price		real		NOT NULL,
+
+	CONSTRAINT PK_Menu PRIMARY KEY (MenuID),
+	
+	CONSTRAINT FK_MenuRestaurant FOREIGN KEY (RestaurantID) REFERENCES Menulog_Restaurant
+		ON DELETE CASCADE
+		ON UPDATE CASCADE,
+
+	CONSTRAINT Length_MenuID CHECK (length(MenuID) = 5),
+	CONSTRAINT Length_RestaurantID CHECK (length(RestaurantID) = 4),
+	CONSTRAINT Valid_Price CHECK (Price > 0)
+
+);
+
+CREATE TABLE Menulog_Order
+(
+	OrderID		numeric(6)	NOT NULL,
+	MenuID		numeric(5)	NOT NULL,
+	OrderDate	date		NOT NULL,
+	Quantity	varchar,
+
+	CONSTRAINT PK_Order PRIMARY KEY (OrderID),
+	
+	CONSTRAINT FK_OrderMenu FOREIGN KEY (MenuID) REFERENCES Menulog_Menu
+		ON DELETE RESTRICT			-- OrderID needs MenuID
+		ON UPDATE CASCADE,
+
+	CONSTRAINT Length_OrderID CHECK (length(OrderID) = 6),
+	CONSTRAINT Length_MenuID CHECK (length(MenuID) = 5)
+
+);
+
+CREATE TABLE Menulog_Customer
+(
+	CustomerID	numeric(7) 	NOT NULL,
+	FirstName	varchar 	NOT NULL,
+	LastName	varchar 	NOT NULL,
+	UnitNo		integer,
+	StreetNo	integer		NOT NULL,
+	StreetName	varchar 	NOT NULL,
+	Suburb		varchar 	NOT NULL,
+	PostCode	numeric(4) 	NOT NULL,
+	HomePhone	varchar,		
+	MobilePhone	varchar,
+	Email		varchar,
+
+	CONSTRAINT PK_Customer PRIMARY KEY (CustomerID),
+
+	CONSTRAINT Length_CustomerID CHECK (length(CustomerID) = 7),
+	CONSTRAINT Valid_UnitNo CHECK (UnitNo > 0),
+	CONSTRAINT Valid_StreetNo CHECK (StreetNo > 0),
+	CONSTRAINT Valid_PostCode CHECK (PostCode >= 2000),
+	CONSTRAINT Length_HomePhoneID CHECK (length(HomePhone) = 10),
+	CONSTRAINT Length_MobilePhoneID CHECK (length(MobilePhone) = 10)
+
+);
+
+CREATE TABLE Menulog_CustomerOrder
+(
+	CustomerID	numeric(7) 	NOT NULL,
+	OrderID		numeric(6) 	NOT NULL,
+
+	CONSTRAINT PK_CustOrder PRIMARY KEY (CustomerID, OrderID),
+	
+	CONSTRAINT CustOrder_FK_Customer FOREIGN KEY (CustomerID) REFERENCES Menulog_Customer
+		ON DELETE CASCADE
+		ON UPDATE CASCADE,
+
+	CONSTRAINT CustOrder_FK_Order FOREIGN KEY (OrderID) REFERENCES Menulog_Order
+		ON DELETE CASCADE
+		ON UPDATE CASCADE,
+
+	CONSTRAINT Length_CustomerID CHECK (length(CustomerID) = 7),
+	CONSTRAINT Length_OrderID CHECK (length(OrderID) = 6)
+
+);
+
+
+-- Location Insertions
+
+INSERT INTO Menulog_Location VALUES (101, 'Sydney', 'Pyrmont', 'NSW', 2009);
+INSERT INTO Menulog_Location VALUES (102, 'Melbourne', 'Melbourne', 'VIC', 3000);
+INSERT INTO Menulog_Location VALUES (103, 'Melbourne', 'Frankston', 'VIC', 3199);
+INSERT INTO Menulog_Location VALUES (104, 'Sydney', 'Penrith', 'NSW', 2750);
+INSERT INTO Menulog_Location VALUES (105, 'Sydney', 'Penrith', 'NSW', 2750);
+INSERT INTO Menulog_Location VALUES (106, 'Brisbane', 'St Lucia', 'QLD', 4067);
+INSERT INTO Menulog_Location VALUES (107, 'Sydney', 'Newtown', 'NSW', 2042);
+INSERT INTO Menulog_Location VALUES (108, 'Sydney', 'Penrith', 'NSW', 2750);
+INSERT INTO Menulog_Location VALUES (109, 'Sydney', 'Mascot', 'NSW', 2020);
+INSERT INTO Menulog_Location VALUES (110, 'Sydney', 'Concord', 'NSW', 2137);
+
+
+-- Restaurant Insertions
+
+INSERT INTO Menulog_Restaurant VALUES (4300, 101, 'The Darling Pizzeria', 'Italian', '88-90 Union Street', '0295662526', '11:30', '23:59');
+INSERT INTO Menulog_Restaurant VALUES (4301, 102, 'Gourmet Curry Hut', 'Indian', '318 Little Collins Street', '0396714433', '15:00', '21:30');
+INSERT INTO Menulog_Restaurant VALUES (4302, 103, 'Emperor Palace Restaurant', 'Chinese', '245 Beach Street', '0397899886', '16:30', '21:30');
+INSERT INTO Menulog_Restaurant VALUES (4303, 104, 'Valentinos', 'Italian', '17/55-61 York Road', '0247314314', '17:30', '21:15');
+INSERT INTO Menulog_Restaurant VALUES (4304, 105, 'Chili Jam Thai', 'Thai', '55A Riley Street', '0247225999', '17:00', '21:45');
+INSERT INTO Menulog_Restaurant VALUES (4305, 106, 'Kushi Q', 'Japanese', '4/219 Hawken Drive', '0738701030', '11:00', '22:00');
+INSERT INTO Menulog_Restaurant VALUES (4306, 107, 'Ravens Eye', 'Italian', '127 King Street', '0295576429', '12:00', '22:00');
+INSERT INTO Menulog_Restaurant VALUES (4307, 108, 'Delhi 77', 'Indian', '2/560 High Street', '0247223995', '17:00', '20:30');
+INSERT INTO Menulog_Restaurant VALUES (4308, 109, 'Mascot Asian House', 'Chinese', '946 Botany Road', '0280211487', '16:30', '21:00');
+INSERT INTO Menulog_Restaurant VALUES (4309, 110, 'Toppinz Bar', 'Italian', '101 Burwood Road', '0297478858', '17:00', '21:30');
+
+
+-- Review Insertions
+
+INSERT INTO Menulog_Review VALUES (56405, 4300, '1-October-2015', 'Anonymous', 4.5);
+INSERT INTO Menulog_Review VALUES (56406, 4300, '2-October-2015', 'Greg', 3);
+INSERT INTO Menulog_Review VALUES (56407, 4300, '3-October-2015', 'Sylvia', 3.5);
+INSERT INTO Menulog_Review VALUES (56408, 4301, '3-October-2015', 'Ahmad', 4.7);
+INSERT INTO Menulog_Review VALUES (56409, 4301, '3-October-2015', 'Abdul', 3.8);
+INSERT INTO Menulog_Review VALUES (56410, 4302, '4-October-2015', 'Lee', 2.5);
+INSERT INTO Menulog_Review VALUES (56411, 4303, '4-October-2015', 'William', 4);
+INSERT INTO Menulog_Review VALUES (56412, 4304, '7-October-2015', 'Anonymous', 1.6);
+INSERT INTO Menulog_Review VALUES (56413, 4305, '8-October-2015', 'Takeshi', 4.3);
+INSERT INTO Menulog_Review VALUES (56414, 4306, '9-October-2015', 'James', 3.7);
+INSERT INTO Menulog_Review VALUES (56415, 4307, '10-October-2015', 'Divraj', 4.6);
+INSERT INTO Menulog_Review VALUES (56416, 4308, '11-October-2015', 'Vicky', 4.5);
+INSERT INTO Menulog_Review VALUES (56417, 4309, '12-October-2015', 'Santoz', 3.2);
+INSERT INTO Menulog_Review VALUES (56418, 4309, '12-October-2015', 'Erica', 3.9);
+INSERT INTO Menulog_Review VALUES (56419, 4309, '13-October-2015', 'Ribena', 3.4);
+INSERT INTO Menulog_Review VALUES (56420, 4309, '14-October-2015', 'Carlos', 3);
+
+
+-- Menu Insertions
+
+INSERT INTO Menulog_Menu VALUES (58200, 4300, 'Australiana Pizza', 17.50);
+INSERT INTO Menulog_Menu VALUES (58212, 4300, 'Garlic Bread', 4.00);
+INSERT INTO Menulog_Menu VALUES (58203, 4301, 'Vegetable Korma', 14.50);
+INSERT INTO Menulog_Menu VALUES (58204, 4301, 'Spinach Pakora', 6.50);
+INSERT INTO Menulog_Menu VALUES (58268, 4302, 'Honey Chicken', 12.00);
+INSERT INTO Menulog_Menu VALUES (58201, 4303, 'Bolognese Pasta', 18.00);
+INSERT INTO Menulog_Menu VALUES (58205, 4304, 'Pad Thai', 9.80);
+INSERT INTO Menulog_Menu VALUES (58208, 4305, 'Seafood Ramen', 11.50);
+INSERT INTO Menulog_Menu VALUES (58257, 4306, 'Zuchchini Flowers', 8.00);
+INSERT INTO Menulog_Menu VALUES (58244, 4307, 'Bombay Beef', 14.90);
+INSERT INTO Menulog_Menu VALUES (58259, 4308, 'Spring Rolls', 5.50);
+INSERT INTO Menulog_Menu VALUES (58260, 4308, 'Chicken Omelette', 11.90);
+INSERT INTO Menulog_Menu VALUES (58277, 4309, 'Napolitana Pizza', 15.00);
+
+
+-- Order Insertions
+
+INSERT INTO Menulog_Order VALUES (681500, 58200, '1-October-2015', 1);
+INSERT INTO Menulog_Order VALUES (681501, 58212, '1-October-2015', 3);
+INSERT INTO Menulog_Order VALUES (681502, 58203, '2-October-2015', 1);
+INSERT INTO Menulog_Order VALUES (681503, 58268, '2-October-2015', 2);
+INSERT INTO Menulog_Order VALUES (681504, 58201, '3-October-2015', 3);
+INSERT INTO Menulog_Order VALUES (681505, 58205, '7-October-2015', 2);
+INSERT INTO Menulog_Order VALUES (681506, 58208, '8-October-2015', 1);
+INSERT INTO Menulog_Order VALUES (681507, 58257, '9-October-2015', 3);
+INSERT INTO Menulog_Order VALUES (681508, 58244, '10-October-2015', 1);
+INSERT INTO Menulog_Order VALUES (681509, 58259, '11-October-2015', 4);
+INSERT INTO Menulog_Order VALUES (681510, 58277, '12-October-2015', 2);
+
+
+-- Customer Insertions
+
+INSERT INTO Menulog_Customer VALUES (7421700, 'Gary', 'Hickey', 65, 272, 'Harris Street', 'Pyrmont', 2009, null, '0412568495', 'gary.hickey@gmail.com');
+INSERT INTO Menulog_Customer VALUES (7421701, 'Ravi', 'Ahmed', 403, 357, 'Collins Street', 'Melbourne', 3000, null, '0432599149', 'ravi@yahoo.com');
+INSERT INTO Menulog_Customer VALUES (7421702, 'Abdul', 'Singh', 57, 118, 'Queen Street', 'Melbourne', 3000, '0215426658', null, 'abdul_singh@live.com');
+INSERT INTO Menulog_Customer VALUES (7421703, 'Sarah', 'Prisha', null, 88, 'Flinders Street', 'Melbourne', 3000, null, '0430177558', 'sarah@hotmail.com');
+INSERT INTO Menulog_Customer VALUES (7421704, 'Raymond', 'Yew', 36, 14, 'Beach Street', 'Frankston', 3199, null, '0458834674', 'yew.raymond@gmail.com');
+INSERT INTO Menulog_Customer VALUES (7421705, 'William', 'Wingston', 10, 43, 'Henry Street', 'Penrith', 2750, null, '0427411582', 'w.wingston@outlook.com');
+INSERT INTO Menulog_Customer VALUES (7421706, 'Sam', 'Wood', 17, 166, 'Station Street', 'Penrith', 2750, '0215759346', null, 'sam_wood@live.com');
+INSERT INTO Menulog_Customer VALUES (7421707, 'Takeshi', 'Yamamoto', 803, 503, 'Carmody Road', 'St Lucia', 4067, null, '0425577961', 'yamamoto@yahoo.com');
+INSERT INTO Menulog_Customer VALUES (7421708, 'James', 'Wall', 78, 225, 'Wilson Street', 'Newtown', 2042, null, '0416842587', 'james_wall@gmail.com');
+INSERT INTO Menulog_Customer VALUES (7421709, 'Sher', 'Ali', null, 110, 'Union Lane', 'Penrith', 2750, null, '0466423190', 'sher.ali@live.com');
+INSERT INTO Menulog_Customer VALUES (7421710, 'Vicky', 'Lin', 202, 524, 'Macintosh Street', 'Mascot', 2020, null, '0498720255', 'vicky.lu@baidu.com');
+INSERT INTO Menulog_Customer VALUES (7421711, 'Nadia', 'Khan', 707, 238, 'Davidson Avenue', 'Concord', 2137, '0252747316', null, 'nadia_khan@outlook.com');
+
+
+-- CustomerOrder Insertions
+
+INSERT INTO Menulog_CustomerOrder VALUES (7421700, 681500);
+INSERT INTO Menulog_CustomerOrder VALUES (7421700, 681501);
+INSERT INTO Menulog_CustomerOrder VALUES (7421701, 681502);
+INSERT INTO Menulog_CustomerOrder VALUES (7421702, 681502);
+INSERT INTO Menulog_CustomerOrder VALUES (7421703, 681502);
+INSERT INTO Menulog_CustomerOrder VALUES (7421704, 681503);
+INSERT INTO Menulog_CustomerOrder VALUES (7421705, 681504);
+INSERT INTO Menulog_CustomerOrder VALUES (7421706, 681505);
+INSERT INTO Menulog_CustomerOrder VALUES (7421707, 681506);
+INSERT INTO Menulog_CustomerOrder VALUES (7421708, 681507);
+INSERT INTO Menulog_CustomerOrder VALUES (7421709, 681508);
+INSERT INTO Menulog_CustomerOrder VALUES (7421710, 681509);
+INSERT INTO Menulog_CustomerOrder VALUES (7421711, 681510);
